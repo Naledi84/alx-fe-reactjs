@@ -6,6 +6,7 @@ import WelcomeMessage from "./components/WelcomeMessage";
 import Header from "./Header";
 import MainContent from "./MainContent";
 import Footer from "./Footer";
+import UserProfile from "./components/UserProfile";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -18,6 +19,12 @@ function App() {
       <Footer />
 
       {/* Existing Vite + React content */}
+      <UserProfile
+        name="Naledi"
+        age="26"
+        bio="Curious about React and building cool apps!"
+      />
+
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
