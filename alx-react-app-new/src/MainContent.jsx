@@ -1,5 +1,6 @@
 import React from "react";
-import UserProfile from "./components/UserProfile";
+import UserProfile from "./UserProfile";
+
 
 function MainContent() {
   return (
