@@ -1,5 +1,5 @@
-import { Routes, Route, Link } from "react-router-dom";
-import AddRecipeForm from "./components/AddRecipeForm";
+import { Routes, Route } from "react-router-dom";
+import RecipeDetails from "./components/RecipeDetails";
 import RecipeList from "./components/RecipeList";
 import RecipeDetails from "./components/RecipeDetails";
 
@@ -11,15 +11,7 @@ function App() {
         <Link to="/">Home</Link>
       </nav>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              <AddRecipeForm />
-              <RecipeList />
-            </>
-          }
-        />
+        <Route path="/" element={<Home />} />
         <Route path="/recipe/:id" element={<RecipeDetails />} />
       </Routes>
     </div>
