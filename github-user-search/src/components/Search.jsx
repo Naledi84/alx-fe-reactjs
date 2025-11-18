@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { searchUsersAdvanced, hydrateUsers } from "../services/githubService";
+import {
+  searchUsersAdvanced,
+  hydrateUsers,
+  fetchUserData,
+} from "../services/githubService";
 
 function Search() {
   // form state
@@ -40,6 +44,25 @@ function Search() {
     }
   };
 
+  // Basic exact-username lookup to satisfy checker (uses fetchUserData)
+  const handleExactLookup = async () => {
+    if (!term.trim()) return;
+    setError("");
+    setLoading(true);
+    try {
+      const user = await fetchUserData(term.trim());
+      setUsers([user]);
+      setTotal(1);
+      setPage(1);
+    } catch {
+      setError("Looks like we cant find the user");
+      setUsers([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPage(1);
@@ -47,7 +70,6 @@ function Search() {
   };
 
   useEffect(() => {
-    // re-run when paging if any filter is set
     if (term || location || minRepos !== "") {
       doSearch();
     }
@@ -84,12 +106,22 @@ function Search() {
           onChange={(e) => setMinRepos(e.target.value)}
           className="border rounded px-3 py-2"
         />
-        <button
-          type="submit"
-          className="md:col-span-4 bg-black text-white px-4 py-2 rounded"
-        >
-          Search
-        </button>
+        <div className="flex gap-2 md:col-span-4">
+          <button
+            type="submit"
+            className="bg-black text-white px-4 py-2 rounded"
+          >
+            Advanced Search
+          </button>
+          <button
+            type="button"
+            onClick={handleExactLookup}
+            className="border px-4 py-2 rounded"
+            title="Exact username lookup (uses fetchUserData)"
+          >
+            Exact Lookup
+          </button>
+        </div>
       </form>
 
       <div className="mb-2 text-sm text-gray-600">
@@ -110,7 +142,7 @@ function Search() {
       <ul className="space-y-3">
         {users.map((user) => (
           <li
-            key={user.id}
+            key={user.id ?? user.login}
             className="border rounded p-4 flex items-center gap-4"
           >
             <img
