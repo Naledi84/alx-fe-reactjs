@@ -1,22 +1,43 @@
-import { useState } from "react";
-import { fetchUserData } from "../services/githubService";
+import { useEffect, useState } from "react";
+import { searchUsersAdvanced, hydrateUsers } from "../services/githubService";
 
 function Search() {
-  const [username, setUsername] = useState("");
-  const [user, setUser] = useState(null);
+  // form state
+  const [term, setTerm] = useState("");
+  const [location, setLocation] = useState("");
+  const [minRepos, setMinRepos] = useState("");
+
+  // results state
+  const [users, setUsers] = useState([]);
+  const [total, setTotal] = useState(0);
+
+  // ui state
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSearch = async (e) => {
+    e?.preventDefault();
     setError("");
-    setUser(null);
-    if (!username.trim()) return;
-
+    setUsers([]);
     setLoading(true);
+
     try {
-      const data = await fetchUserData(username.trim());
-      setUser(data);
+      const minReposNum = minRepos !== "" ? Number(minRepos) : undefined;
+      const data = await searchUsersAdvanced({
+        term,
+        location,
+        minRepos: Number.isFinite(minReposNum) ? minReposNum : undefined,
+        page,
+        perPage,
+      });
+
+      setTotal(data.total_count || 0);
+
+      // hydrate items with detailed info (location, public_repos, etc.)
+      const hydrated = await hydrateUsers(data.items || []);
+      setUsers(hydrated);
     } catch (err) {
       setError("Looks like we cant find the user");
     } finally {
@@ -24,43 +45,122 @@ function Search() {
     }
   };
 
+  // re-run search when page changes (if already submitted)
+  useEffect(() => {
+    if (term || location || minRepos !== "") {
+      handleSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  const totalPages = Math.min(100, Math.ceil(total / perPage)); // GitHub caps at 1000 results
+
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <form onSubmit={handleSubmit} className="flex gap-2">
+    <div className="max-w-3xl mx-auto p-4">
+      <form
+        onSubmit={handleSearch}
+        className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4"
+      >
         <input
           type="text"
-          placeholder="Enter GitHub username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="border rounded px-3 py-2 w-full"
+          placeholder="Search term (e.g., username or keyword)"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          className="border rounded px-3 py-2 md:col-span-2"
         />
-        <button type="submit" className="bg-black text-white px-4 py-2 rounded">
+        <input
+          type="text"
+          placeholder="Location (e.g., South Africa)"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="border rounded px-3 py-2"
+        />
+        <input
+          type="number"
+          min="0"
+          placeholder="Min repos"
+          value={minRepos}
+          onChange={(e) => setMinRepos(e.target.value)}
+          className="border rounded px-3 py-2"
+        />
+        <button
+          type="submit"
+          className="md:col-span-4 bg-black text-white px-4 py-2 rounded"
+        >
           Search
         </button>
       </form>
 
-      <div className="mt-4">
+      <div className="mb-2 text-sm text-gray-600">
+        {total > 0 && (
+          <p>
+            Found {total} users. Showing page {page} of {totalPages || 1}.
+          </p>
+        )}
+      </div>
+
+      <div>
         {loading && <p>Loading...</p>}
         {error && <p className="text-red-600">{error}</p>}
 
-        {user && (
-          <div className="border rounded p-4 flex items-center gap-4">
-            <img
-              src={user.avatar_url}
-              alt={user.login}
-              className="w-16 h-16 rounded-full"
-            />
-            <div>
-              <p className="font-semibold">{user.name || user.login}</p>
-              <a
-                href={user.html_url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-600 underline"
-              >
-                View Profile
-              </a>
-            </div>
+        {!loading && !error && users.length === 0 && (
+          <p className="text-gray-700">No users found</p>
+        )}
+
+        <ul className="space-y-3">
+          {users.map((user) => (
+            <li
+              key={user.id}
+              className="border rounded p-4 flex items-center gap-4"
+            >
+              <img
+                src={user.avatar_url}
+                alt={user.login}
+                className="w-14 h-14 rounded-full"
+              />
+              <div className="flex-1">
+                <p className="font-semibold">{user.name || user.login}</p>
+                <p className="text-sm text-gray-600">
+                  {user.location
+                    ? `Location: ${user.location}`
+                    : "Location: N/A"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Public repos: {user.public_repos ?? "N/A"}
+                </p>
+                <a
+                  href={user.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 underline text-sm"
+                >
+                  View Profile
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center gap-2 mt-4">
+            <button
+              className="px-3 py-2 border rounded disabled:opacity-50"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Prev
+            </button>
+            <span className="text-sm">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              className="px-3 py-2 border rounded disabled:opacity-50"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </button>
           </div>
         )}
       </div>

@@ -7,7 +7,8 @@ function App() {
       <header className="mb-6">
         <h1 className="text-2xl font-bold">GitHub User Search</h1>
         <p className="text-sm text-gray-600">
-          Enter a GitHub username to fetch profile details.
+          Search by username/keyword, filter by location and minimum
+          repositories.
         </p>
       </header>
 
