@@ -1,16 +1,18 @@
-import "./App.css";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import HomePage from "./components/HomePage";
+import RecipeDetail from "./components/RecipeDetail";
+import "./App.css";
 
 function App() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-3xl font-bold text-blue-500">
-        Recipe Sharing Platform Setup Successful!
-      </h1>
+    <Router>
       <div className="bg-gray-100 min-h-screen">
-        <HomePage />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/recipe/:id" element={<RecipeDetail />} />
+        </Routes>
       </div>
-    </div>
+    </Router>
   );
 }
 
