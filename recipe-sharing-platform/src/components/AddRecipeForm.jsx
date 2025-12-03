@@ -3,14 +3,14 @@ import { useState } from "react";
 function AddRecipeForm() {
   const [title, setTitle] = useState("");
   const [ingredients, setIngredients] = useState("");
-  const [instructions, setInstructions] = useState("");
+  const [steps, setSteps] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Basic validation
-    if (!title || !ingredients || !instructions) {
+    // Validation
+    if (!title || !ingredients || !steps) {
       setError("All fields are required.");
       return;
     }
@@ -19,22 +19,22 @@ function AddRecipeForm() {
       .split("\n")
       .filter((item) => item.trim() !== "");
     if (ingredientsList.length < 2) {
-      setError("Please provide at least two ingredients.");
+      setError("Please enter at least two ingredients.");
       return;
     }
 
-    // Simulate form submission
+    // Simulate submission
     console.log({
       title,
       ingredients: ingredientsList,
-      instructions: instructions.split("\n"),
+      steps: steps.split("\n"),
     });
 
-    setError("");
     alert("Recipe submitted successfully!");
     setTitle("");
     setIngredients("");
-    setInstructions("");
+    setSteps("");
+    setError("");
   };
 
   return (
@@ -75,8 +75,8 @@ function AddRecipeForm() {
             Preparation Steps
           </label>
           <textarea
-            value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
+            value={steps}
+            onChange={(e) => setSteps(e.target.value)}
             rows={4}
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="e.g.,\nChop vegetables\nStir-fry in pan\nAdd sauce and serve"
