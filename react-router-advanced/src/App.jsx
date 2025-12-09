@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./components/Home";
 import Profile from "./components/Profile";
 import BlogPost from "./components/BlogPost";
@@ -16,8 +11,6 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-
-        {/* Protected Route for Profile */}
         <Route
           path="/profile/*"
           element={
@@ -26,14 +19,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* Dynamic Route for Blog Posts */}
         <Route path="/blog/:id" element={<BlogPost />} />
-
         <Route path="/login" element={<Login />} />
-
-        {/* Redirect unknown routes */}
-        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
